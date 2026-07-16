@@ -1,169 +1,133 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 
 let listaId = 0;
 let tarefaId = 0;
 
-const novoTitulo = ref("");
+const titulo = ref("");
 
-const listas = ref([
-  {
-    id: listaId++,
-    titulo: "Estudos",
-    novaTarefa: "",
-    esconderConcluidas: false,
-    tarefas: [
-      { id: tarefaId++, texto: "Aprender HTML", done: true },
-      { id: tarefaId++, texto: "Aprender JavaScript", done: false },
-      { id: tarefaId++, texto: "Aprender Vue", done: false }
-    ]
-  }
-]);
+const listas = ref([]);
 
-function criarLista() {
-  if (!novoTitulo.value.trim()) return;
+function adicionarLista() {
+  if (!titulo.value) return;
 
   listas.value.push({
     id: listaId++,
-    titulo: novoTitulo.value,
+    titulo: titulo.value,
     novaTarefa: "",
     esconderConcluidas: false,
     tarefas: []
   });
 
-  novoTitulo.value = "";
+  titulo.value = "";
 }
 
-function adicionarTarefa(lista: any) {
-  if (!lista.novaTarefa.trim()) return;
+function adicionarTarefa(lista) {
+  if (!lista.novaTarefa) return;
 
   lista.tarefas.push({
     id: tarefaId++,
-    texto: lista.novaTarefa,
+    text: lista.novaTarefa,
     done: false
   });
 
   lista.novaTarefa = "";
 }
 
-function removerTarefa(lista: any, tarefa: any) {
-  lista.tarefas = lista.tarefas.filter((t: any) => t.id !== tarefa.id);
-}
-
-function removerLista(id: number) {
-  listas.value = listas.value.filter((l) => l.id !== id);
-}
-
-function tarefasFiltradas(lista: any) {
-  return lista.esconderConcluidas
-    ? lista.tarefas.filter((t: any) => !t.done)
-    : lista.tarefas;
+function removerTarefa(lista, tarefa) {
+  lista.tarefas = lista.tarefas.filter(t => t.id !== tarefa.id);
 }
 </script>
 
 <template>
-  <h1>Gerenciador de Listas de Tarefas</h1>
-
-  <div class="nova-lista">
-    <input
-      v-model="novoTitulo"
-      placeholder="Título da nova lista"
+  <header>
+    <img
+      alt="Vue logo"
+      class="logo"
+      src="./assets/logo.svg"
+      width="125"
+      height="125"
     />
-    <button @click="criarLista">
-      Criar Lista
-    </button>
-  </div>
+  </header>
 
-  <div
-    class="lista"
-    v-for="lista in listas"
-    :key="lista.id"
-  >
-    <h2>{{ lista.titulo }}</h2>
-
-    <form @submit.prevent="adicionarTarefa(lista)">
-      <input
-        v-model="lista.novaTarefa"
-        placeholder="Nova tarefa"
-        required
-      />
-      <button>Adicionar</button>
-    </form>
-
-    <ul>
-      <li
-        v-for="tarefa in tarefasFiltradas(lista)"
-        :key="tarefa.id"
-      >
-        <input
-          type="checkbox"
-          v-model="tarefa.done"
-        />
-
-        <span :class="{ done: tarefa.done }">
-          {{ tarefa.texto }}
-        </span>
-
-        <button @click="removerTarefa(lista, tarefa)">
-          X
-        </button>
-      </li>
-    </ul>
-
-    <button
-      @click="lista.esconderConcluidas = !lista.esconderConcluidas"
+  <main>
+    <input
+      v-model="titulo"
+      placeholder="Título da lista"
     >
-      {{ lista.esconderConcluidas
-        ? "Mostrar todas"
-        : "Ocultar concluídas" }}
+    <button @click="adicionarLista">
+      Nova Lista
     </button>
 
-    <button class="remover" @click="removerLista(lista.id)">
-      Remover Lista
-    </button>
-  </div>
+    <div
+      v-for="lista in listas"
+      :key="lista.id"
+    >
+      <h2>{{ lista.titulo }}</h2>
+
+      <form @submit.prevent="adicionarTarefa(lista)">
+        <input
+          v-model="lista.novaTarefa"
+          placeholder="Nova tarefa"
+          required
+        >
+        <button>Adicionar</button>
+      </form>
+
+      <ul>
+        <li
+          v-for="todo in (lista.esconderConcluidas
+            ? lista.tarefas.filter(t => !t.done)
+            : lista.tarefas)"
+          :key="todo.id"
+        >
+          <input
+            type="checkbox"
+            v-model="todo.done"
+          >
+
+          <span :class="{ done: todo.done }">
+            {{ todo.text }}
+          </span>
+
+          <button @click="removerTarefa(lista, todo)">
+            X
+          </button>
+        </li>
+      </ul>
+
+      <button @click="lista.esconderConcluidas = !lista.esconderConcluidas">
+        {{ lista.esconderConcluidas ? "Mostrar todas" : "Ocultar concluídas" }}
+      </button>
+
+      <hr>
+    </div>
+  </main>
 </template>
 
 <style scoped>
-body {
-  font-family: Arial, Helvetica, sans-serif;
+header {
+  line-height: 1.5;
 }
 
-h1 {
-  text-align: center;
-}
-
-.nova-lista {
-  margin-bottom: 20px;
-}
-
-.lista {
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 20px;
-}
-
-ul {
-  padding-left: 20px;
-}
-
-li {
-  margin: 8px 0;
+.logo {
+  display: block;
+  margin: 0 auto 2rem;
 }
 
 .done {
   text-decoration: line-through;
-  color: gray;
 }
 
-button {
-  margin-left: 5px;
-}
+@media (min-width: 1024px) {
+  header {
+    display: flex;
+    place-items: center;
+    padding-right: calc(var(--section-gap) / 2);
+  }
 
-.remover {
-  margin-top: 10px;
-  background-color: crimson;
-  color: white;
+  .logo {
+    margin: 0 2rem 0 0;
+  }
 }
 </style>
